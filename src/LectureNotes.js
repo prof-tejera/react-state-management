@@ -84,6 +84,102 @@ class App extends React.Component {
   }
 }
 
+// How setState works
+class MyComponent extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      count: 1,
+    };
+  }
+
+  handleClick = () => {
+    console.log('Before calling setState', this.state.count);
+
+    // We call setState, which is async
+    this.setState({
+      count: this.state.count + 1,
+    });
+
+    // State is not updated still!
+    console.log('After calling setState', this.state.count);
+  };
+
+  render() {
+    return (
+      <div>
+        <div>Count {this.state.count}</div>
+        <button onClick={this.handleClick}>Click Me</button>
+      </div>
+    );
+  }
+}
+
+// Timers
+class Test extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      count: 100,
+    };
+  }
+  render() {
+    var { count } = this.state;
+    const start = () => {
+      this.setState({
+        interval: setInterval(tick, 1000),
+      });
+    };
+    const tick = () => {
+      console.log('count ' + count);
+      console.log('this.state.count ' + this.state.count);
+      this.setState({
+        count: this.state.count - 1,
+      });
+    };
+    return (
+      <div>
+        <button label="start" onClick={start}>
+          Start
+        </button>
+      </div>
+    );
+  }
+}
+
+class MyComponent extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      count: 1,
+    };
+  }
+
+  handleClick = () => {
+    console.log('Before calling setState', this.state.count);
+
+    // We call setState, which is async
+    this.setState(
+      {
+        count: this.state.count + 1,
+      },
+      () => {
+        // State is NOW updated
+        console.log('After calling setState', this.state.count);
+      },
+    );
+  };
+
+  render() {
+    return (
+      <div>
+        <div>Count {this.state.count}</div>
+        <button onClick={this.handleClick}>Click Me</button>
+      </div>
+    );
+  }
+}
+
 /*
 document.querySelectorAll('input');
 */
