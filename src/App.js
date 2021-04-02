@@ -1,40 +1,30 @@
 import './App.css';
-import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import { token } from './config';
-
-class Input extends React.Component {
-  render() {
-    return (
-      <div>
-        <label>{this.props.label}</label>
-        <input
-          value={this.props.value}
-          onChange={e => {
-            this.props.onChange(e.target.value);
-          }}
-        />
-      </div>
-    );
-  }
-}
+import React, { useEffect, useState } from 'react';
 
 class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      username: '',
-      password: '',
+      running: false,
     };
   }
 
   render() {
-    // Now we have full control because we're managing state up here
-    console.log('username', this.state.username, 'password', this.state.password);
     return (
-      <div>
-        <Input label="username" onChange={username => this.setState({ username })} />
-        <Input label="password" onChange={password => this.setState({ password })} />
+      <div style={{ textAlign: 'center', width: '100%', paddingTop: '100px' }}>
+        <div>{this.state.running ? 'Running' : 'Idle'}</div>
+        <button
+          style={{
+            backgroundColor: this.state.running ? 'blue' : 'red',
+          }}
+          onClick={() => {
+            this.setState({
+              running: !this.state.running,
+            });
+          }}
+        >
+          Start
+        </button>
       </div>
     );
   }

@@ -7,7 +7,7 @@ class Input extends React.Component {
   constructor() {
     super();
     this.state = {
-      value,
+      value: '',
     };
   }
 
@@ -255,11 +255,9 @@ class Counter extends React.Component {
   }
 }
 
-// TODO: change to username/pwd
-const LoginForm = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  // ...
+const Counter = () => {
+  const [counter, setCounter] = useState(0);
+  return <div onClick={() => setCounter(counter + 1)}>Counter {counter}</div>;
 };
 
 // #4
@@ -422,32 +420,4 @@ const Counter = () => {
   }, [counter]);
 
   return <div>Counter {counter}</div>;
-};
-
-// useRef
-// Something we haven't talked about is how to interact with the DOM directly (because we don't want to!)
-// but sometimes we need to. To do so, we can attach a "reference" to a dom element, and use it as needed
-import mapboxgl from 'mapbox-gl';
-import React from 'react';
-import { token } from './config';
-
-const App = () => {
-  const domRef = useRef();
-
-  useEffect(() => {
-    mapboxgl.accessToken = token;
-
-    new mapboxgl.Map({
-      container: domRef.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [-74.5, 40],
-      zoom: 9,
-    });
-  }, []);
-
-  return (
-    <div ref={domRef} style={{ height: 400, width: 400 }}>
-      Hello world
-    </div>
-  );
 };
