@@ -1,91 +1,7 @@
-// Notes on previous weekly assignment
-
-// Here the input is managing its state internally. App has no way
-// of knowing what the value of the input is. We have taken over the browser
-// from managing state, but this component is rather useless as is
-class Input extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      value: '',
-    };
-  }
-
-  render() {
-    return (
-      <div>
-        <label>{this.props.label}</label>
-        <input
-          value={this.state.value}
-          onChange={e => {
-            this.setState({
-              value: e.target.value,
-            });
-          }}
-        />
-      </div>
-    );
-  }
-}
-
-class App extends React.Component {
-  render() {
-    // How can I read the username and password values?
-    console.log('username?');
-    return (
-      <div>
-        <Input label="username" />
-      </div>
-    );
-  }
-}
-
-// Now we have taken over the browser but App has also taken
-// over state management of the Input too. The flow goes:
-// - App tells the input that its current value is '' and passes an onChange
-//   function that the input should call whenever it needs to change
-// - The user types a character, 'a' into the input
-// - Input calls onChange with the new value 'a'
-// - App gets notified of this new value and updates the state
-// - When App updates the state, it re-renders, and passes the new values to the Input
-// - Input receives the new value and re-renders itself with 'a'
-class Input extends React.Component {
-  render() {
-    return (
-      <div>
-        <label>{this.props.label}</label>
-        <input
-          value={this.props.value}
-          onChange={e => {
-            this.props.onChange(e.target.value);
-          }}
-        />
-      </div>
-    );
-  }
-}
-
-class App extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      username: '',
-    };
-  }
-
-  render() {
-    // Now we have full control because we're managing state up here
-    console.log('username', this.state.username);
-    return (
-      <div>
-        <Input label="username" onChange={username => this.setState({ username })} />
-      </div>
-    );
-  }
-}
+import { useEffect } from 'react';
 
 // How setState works
-class MyComponent extends React.Component {
+class StateTest extends React.Component {
   constructor() {
     super();
     this.state = {
@@ -107,47 +23,15 @@ class MyComponent extends React.Component {
 
   render() {
     return (
-      <div>
-        <div>Count {this.state.count}</div>
+      <div className="main-panel">
+        <div className="display">Count {this.state.count}</div>
         <button onClick={this.handleClick}>Click Me</button>
       </div>
     );
   }
 }
 
-// Timers
-class Test extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      count: 100,
-    };
-  }
-  render() {
-    var { count } = this.state;
-    const start = () => {
-      this.setState({
-        interval: setInterval(tick, 1000),
-      });
-    };
-    const tick = () => {
-      console.log('count ' + count);
-      console.log('this.state.count ' + this.state.count);
-      this.setState({
-        count: this.state.count - 1,
-      });
-    };
-    return (
-      <div>
-        <button label="start" onClick={start}>
-          Start
-        </button>
-      </div>
-    );
-  }
-}
-
-class MyComponent extends React.Component {
+class StateTest extends React.Component {
   constructor() {
     super();
     this.state = {
@@ -172,17 +56,66 @@ class MyComponent extends React.Component {
 
   render() {
     return (
-      <div>
-        <div>Count {this.state.count}</div>
+      <div className="main-panel">
+        <div className="display">Count {this.state.count}</div>
         <button onClick={this.handleClick}>Click Me</button>
       </div>
     );
   }
 }
 
-/*
-document.querySelectorAll('input');
-*/
+const App = () => {
+  return <StateTest />;
+};
+
+// Timers
+// the tick function is not redefined every render, so the value of `count` is set
+// to the first time its defined. However, this.state.count is a reference to the current value
+class TrickyTimer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      count: 100,
+    };
+  }
+
+  render() {
+    const { count, interval } = this.state;
+
+    const tick = () => {
+      console.log('count ' + count);
+      console.log('count', count, 'this.state.count', this.state.count);
+      this.setState({
+        count: this.state.count - 1,
+      });
+    };
+
+    const isRunning = !!interval;
+
+    return (
+      <div className="main-panel">
+        <div className="display">Count {this.state.count}</div>
+        <button
+          style={{ backgroundColor: isRunning ? 'red' : '#3B668C' }}
+          onClick={() => {
+            if (interval) {
+              clearInterval(interval);
+              this.setState({
+                interval: null,
+              });
+            } else {
+              this.setState({
+                interval: setInterval(tick, 1000),
+              });
+            }
+          }}
+        >
+          {isRunning ? 'Stop' : 'Start'}
+        </button>
+      </div>
+    );
+  }
+}
 
 // So far we've defined components as classes because
 // they're easier to understand, but they can be highly simplified
@@ -192,22 +125,145 @@ document.querySelectorAll('input');
 // #1
 class MyComponent extends React.Component {
   render() {
-    return <div>hello {this.props.name}</div>;
+    return <div className="main-panel">hello {this.props.name}</div>;
   }
 }
 
 const MyComponent = ({ name }) => {
-  return <div>hello {name}</div>;
+  return <div className="main-panel">hello {name}</div>;
 };
 
 // #2
-// Remember props cannot be re-assigned, and functional components emphasize
-// this because React functional components are pure functions and always
-// return the same value for the same input
+// Remember props cannot be re-assigned
 const MyComponent = ({ name }) => {
   name = 'rename'; // this is not allowed
 
-  return <div>hello {name}</div>;
+  return <div className="main-panel">hello {name}</div>;
+};
+
+// useRef, useState
+
+// Our version of setState
+const createState = initialValue => {
+  let _innerValue = initialValue;
+
+  const setState = (newValue, after) => {
+    _innerValue = {
+      ..._innerValue,
+      ...newValue,
+    };
+
+    if (after) {
+      after();
+    }
+  };
+
+  const getter = () => _innerValue;
+
+  return {
+    state: getter,
+    setState,
+  };
+};
+
+const App = () => {
+  const { state, setState } = createState({
+    counter: 1,
+  });
+
+  console.log('Initial Value', state());
+
+  const run = () => {
+    const { counter } = state();
+    setState(
+      {
+        counter: counter + 1,
+      },
+      () => {
+        console.log('After change', state());
+      },
+    );
+  };
+
+  return (
+    <div>
+      <button onClick={run}>setState</button>
+    </div>
+  );
+};
+
+// Single value state
+const createState = initialValue => {
+  let _innerValue = initialValue;
+
+  const setter = newValue => {
+    _innerValue = newValue;
+  };
+
+  const getter = () => _innerValue;
+
+  return {
+    getter,
+    setter,
+  };
+};
+
+const App = () => {
+  const { getter, setter } = createState(0);
+
+  console.log('Initial Value', getter());
+
+  const run = () => {
+    setter(getter() + 1);
+    console.log('After change', getter());
+  };
+
+  return (
+    <div>
+      <button onClick={run}>setState</button>
+    </div>
+  );
+};
+
+const createState = initialValue => {
+  let _innerValue = initialValue;
+
+  const setter = newValue => {
+    _innerValue = newValue;
+  };
+
+  const getter = () => _innerValue;
+
+  return [getter, setter];
+};
+
+// Multiple values
+const App = () => {
+  const [getter1, setter1] = createState(0);
+  const [getter2, setter2] = createState(0);
+
+  const logState = () => {
+    console.log('State 1', getter1(), 'State 2', getter2());
+  };
+
+  const run1 = () => {
+    setter1(getter1() + 1);
+    logState();
+  };
+
+  const run2 = () => {
+    setter2(getter2() + 1);
+    logState();
+  };
+
+  logState();
+
+  return (
+    <div>
+      <button onClick={run1}>Inc1</button>
+      <button onClick={run2}>Inc2</button>
+    </div>
+  );
 };
 
 // #3
@@ -221,15 +277,6 @@ const MyComponent = ({ name }) => {
 // - classes don't minify well
 // - they work side by side so adoption can be gradual
 // - Hooks are functions that let you “hook into” React state and lifecycle features from function components.
-
-// useState
-// - returns a pair -> current value and setter
-// - does not merge old and new state since it just updates one value
-//
-const Counter = () => {
-  const [counter, setCounter] = useState(0);
-  return <div onClick={() => setCounter(count + 1)}>Counter {counter}</div>;
-};
 
 // Compare to the class version:
 class Counter extends React.Component {
@@ -290,7 +337,12 @@ const Counter = () => {
 
   useEffect(componentDidUpdate);
 
-  return <div>Counter {counter}</div>;
+  return (
+    <div className="main-panel">
+      <div className="display">Counter {counter}</div>
+      <button onClick={() => setCounter(counter + 1)}>+</button>
+    </div>
+  );
 };
 
 // less verbose syntax:
@@ -301,7 +353,12 @@ const Counter = () => {
     console.log('run update', counter);
   });
 
-  return <div>Counter {counter}</div>;
+  return (
+    <div className="main-panel">
+      <div className="display">Counter {counter}</div>
+      <button onClick={() => setCounter(counter + 1)}>+</button>
+    </div>
+  );
 };
 
 // clean up (componentDidUnmount) - by returning a function
@@ -332,9 +389,29 @@ const App = () => {
   const [counter, setCounter] = useState(0);
 
   return (
-    <div>
+    <div className="main-panel">
+      <div className="display">{counter % 2 ? <Odd number={counter} /> : <Even number={counter} />}</div>
       <button onClick={() => setCounter(counter + 1)}>Inc</button>
-      {counter % 2 ? <Odd number={counter} /> : <Even number={counter} />}
+    </div>
+  );
+};
+
+// When does the clean up execute? before the next effect runs
+const Counter = () => {
+  const [counter, setCounter] = useState(0);
+
+  useEffect(() => {
+    console.log('run update', counter);
+
+    return () => {
+      console.log('run cleanup', counter);
+    };
+  });
+
+  return (
+    <div className="main-panel">
+      <div className="display">Counter {counter}</div>
+      <button onClick={() => setCounter(counter + 1)}>+</button>
     </div>
   );
 };
@@ -345,17 +422,40 @@ const LoginForm = () => {
   const [password, setPassword] = useState('');
 
   useEffect(() => {
-    console.log('username changed', username);
+    console.log(`%cchanged username to ${username}`, 'color: green;');
+
+    return () => {
+      console.log(`%cclean up username ${username}`, 'color: white; background: green;');
+    };
   }, [username]);
 
   useEffect(() => {
-    console.log('password changed', password);
+    console.log(`%cchanged password to ${password}`, 'color: red;');
+
+    return () => {
+      console.log(`%cclean up password ${password}`, 'color: white; background: red;');
+    };
   }, [password]);
 
   return (
-    <div>
-      <input onChange={e => setUsername(e.target.value)} value={username} placeholder="username" />
-      <input onChange={e => setPassword(e.target.value)} value={password} placeholder="password" type="password" />
+    <>
+      <div>
+        <input onChange={e => setUsername(e.target.value)} value={username} placeholder="username" />
+      </div>
+      <div>
+        <input onChange={e => setPassword(e.target.value)} value={password} placeholder="password" type="password" />
+      </div>
+    </>
+  );
+};
+
+const App = () => {
+  const [mounted, setMounted] = useState(true);
+
+  return (
+    <div className="main-panel">
+      {mounted && <LoginForm />}
+      <button onClick={() => setMounted(!mounted)}>Toggle</button>
     </div>
   );
 };
@@ -365,24 +465,39 @@ const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  // componentDidMount
   useEffect(() => {
     console.log('Runs on mount but never again');
+
+    return () => {
+      console.log('Clean up only on unmount (componentDidUnmount)');
+    };
   }, []);
 
   useEffect(() => {
-    console.log('username changed', username);
+    console.log(`%cchanged username to ${username}`, 'color: green;');
+
+    return () => {
+      console.log(`%cclean up username ${username}`, 'color: white; background: green;');
+    };
   }, [username]);
 
   useEffect(() => {
-    console.log('password changed', password);
+    console.log(`%cchanged password to ${password}`, 'color: red;');
+
+    return () => {
+      console.log(`%cclean up password ${password}`, 'color: white; background: red;');
+    };
   }, [password]);
 
   return (
-    <div>
-      <input onChange={e => setUsername(e.target.value)} value={username} placeholder="username" />
-      <input onChange={e => setPassword(e.target.value)} value={password} placeholder="password" type="password" />
-    </div>
+    <>
+      <div>
+        <input onChange={e => setUsername(e.target.value)} value={username} placeholder="username" />
+      </div>
+      <div>
+        <input onChange={e => setPassword(e.target.value)} value={password} placeholder="password" type="password" />
+      </div>
+    </>
   );
 };
 
@@ -398,11 +513,16 @@ const Counter = () => {
     }, 1000);
 
     return () => {
+      console.log('clearing interval');
       clearInterval(interval);
     };
   }, []);
 
-  return <div>Counter {counter}</div>;
+  return (
+    <div className="main-panel">
+      <div className="display">Counter {counter}</div>
+    </div>
+  );
 };
 
 const Counter = () => {
@@ -415,9 +535,140 @@ const Counter = () => {
     }, 1000);
 
     return () => {
-      clearInterval(timeout);
+      console.log('clearing timeout');
+      clearTimeout(timeout);
     };
   }, [counter]);
 
-  return <div>Counter {counter}</div>;
+  return (
+    <div className="main-panel">
+      <div className="display">Counter {counter}</div>
+    </div>
+  );
+};
+
+// local variables get reset after each re-render!
+const Counter = () => {
+  const [stateCounter, setStateCounter] = useState(0);
+  let varCounter = 0;
+
+  console.log('In Render - stateCounter', stateCounter, 'varCounter', varCounter);
+
+  return (
+    <div>
+      <div className="main-panel">
+        <div className="display">State Counter: {stateCounter}</div>
+        <button
+          onClick={() => {
+            console.log('Before setting - stateCounter', stateCounter);
+            setStateCounter(stateCounter + 1);
+          }}
+        >
+          +
+        </button>
+      </div>
+      <div className="main-panel">
+        <div className="display">Var Counter: {varCounter}</div>
+        <button
+          onClick={() => {
+            console.log('Before setting - varCounter', varCounter);
+            varCounter++;
+          }}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const Counter = () => {
+  const [stateCounter, setStateCounter] = useState(0);
+  const varCounter = useRef(0);
+
+  console.log('In Render - stateCounter', stateCounter, 'varCounter', varCounter.current);
+
+  return (
+    <div>
+      <div className="main-panel">
+        <div className="display">State Counter: {stateCounter}</div>
+        <button
+          onClick={() => {
+            console.log('Before setting - stateCounter', stateCounter);
+            setStateCounter(stateCounter + 1);
+          }}
+        >
+          +
+        </button>
+      </div>
+      <div className="main-panel">
+        <div className="display">Var Counter: {varCounter.current}</div>
+        <button
+          onClick={() => {
+            console.log('Before setting - varCounter', varCounter.current);
+            varCounter.current = varCounter.current + 1;
+          }}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// useRef for DOM references
+class MapClass extends React.Component {
+  constructor() {
+    super();
+    this.myMap = React.createRef();
+  }
+
+  componentDidMount() {
+    new mapboxgl.Map({
+      container: this.myMap.current,
+      style: 'mapbox://styles/mapbox/streets-v11', // style URL
+      center: [-71.1167, 42.377], // starting position [lng, lat]
+      zoom: 14, // starting zoom
+    });
+  }
+
+  render() {
+    return (
+      <div className="main-panel" style={{ padding: 0, overflow: 'hidden' }}>
+        <div ref={this.myMap} style={{ height: 300, width: 300, margin: 0 }} />
+      </div>
+    );
+  }
+}
+
+const MapFunctional = () => {
+  const myMap = useRef();
+
+  useEffect(() => {
+    new mapboxgl.Map({
+      container: myMap.current,
+      style: 'mapbox://styles/mapbox/streets-v11', // style URL
+      center: [-71.1167, 42.377], // starting position [lng, lat]
+      zoom: 14, // starting zoom
+    });
+  }, []);
+
+  return (
+    <div
+      className="main-panel"
+      ref={myMap}
+      style={{ height: 300, width: 300, padding: 0, margin: 0, overflow: 'hidden' }}
+    />
+  );
+};
+
+const App = () => {
+  return (
+    <div>
+      <h2>Class</h2>
+      <MapClass />
+      <h2>Functional</h2>
+      <MapFunctional />
+    </div>
+  );
 };

@@ -1,30 +1,42 @@
-import './App.css';
-import React, { useEffect, useState } from 'react';
+// import './App.css';
+import React, { useState, useEffect, useRef } from 'react';
+import styled from 'styled-components';
+
+class CoolButton extends React.Component {
+  render() {
+    return (
+      <button id="wrapper" className={this.props.className} onClick={this.props.onClick}>
+        I'm Cool {this.props.counter}
+      </button>
+    );
+  }
+}
+
+const StyledCoolButton = styled(CoolButton)`
+  color: red;
+`;
 
 class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      running: false,
+      counter: 0,
     };
   }
 
   render() {
     return (
-      <div style={{ textAlign: 'center', width: '100%', paddingTop: '100px' }}>
-        <div>{this.state.running ? 'Running' : 'Idle'}</div>
-        <button
-          style={{
-            backgroundColor: this.state.running ? 'blue' : 'red',
-          }}
+      <div>
+        <StyledCoolButton
+          counter={this.state.counter}
           onClick={() => {
             this.setState({
-              running: !this.state.running,
+              counter: this.state.counter + 1,
             });
           }}
         >
-          Start
-        </button>
+          {this.state.counter}
+        </StyledCoolButton>
       </div>
     );
   }
