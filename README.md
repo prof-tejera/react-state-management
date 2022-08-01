@@ -1,70 +1,413 @@
-# Getting Started with Create React App
+# State Management
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+So far we have built pretty static components, which receive props and render something. However, apps are dynamic and the user interface needs to display change based on user inputs, data updates, integrations, etc. There are lots of different approaches to handling application state and keeping the UI in sync with it, each with its own pros and cons. There are hundreds of libraries that cover this single topic as it's probably one of the most crucial things to get right on a user interface. 
 
-## Available Scripts
+## Component State
 
-In the project directory, you can run:
+We will start by learning how state is managed at a component level and then move upwards to managing state at an application level. In the end a component is kind of an application by itself - usually it renders a user interface, users can do something with it, and it reacts to change. 
 
-### `npm start`
+First, we will write a little function that will help us keep the value of a single variable:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```jsx
+const useState = initialValue => {
+  let _innerValue = initialValue;
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+  const setter = newValue => {
+    _innerValue = newValue;
+  };
 
-### `npm test`
+  const getter = () => {
+    return _innerValue;
+  };
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+  return [getter, setter];
+};
 
-### `npm run build`
+const App = () => {
+  const [getCount, setCount] = useState(1);
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+  console.log('Initial Value:', getCount());
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+  const run = () => {
+    setCount(getCount() + 1);
+    console.log('Current Value:', getCount());
+  };
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+  return (
+    <div>
+      <button onClick={run}>Increment {getCount()}</button>
+    </div>
+  );
+};
+```
 
-### `npm run eject`
+Of course our UI doesn't react to the changes in our variable because it doesn't know about them. We would need to somehow notify it that there was a change. We could spend some time doing that, but instead we're going to introduce hooks. 
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### Hooks
+ - Functional components have been around for a while, but they weren't too
+ popular because you couldn't do much (state, lifecycle, etc). But then hooks
+ were introduced.
+ - These allow additional functionality into functional components
+ - Allow you to reuse stateful logic without changing your component hierarchy
+ - Avoid using `this`
+ - Classes don't minify well
+ - They work side by side so adoption can be gradual
+ - Hooks are functions that let you “hook into” React state and lifecycle features from function components.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## `useState`
+One of the simplest yet most useful hooks. It returns an array with the current value and a setter function for a single variable for which we can provide an initial value.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```jsx
+import { useState } from 'react';
 
-## Learn More
+const App = () => {
+  const [count, setCount] = useState(1);
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+  console.log('Initial Value:', count);
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+  const run = () => {
+    setCount(count + 1);
+    console.log('Current Value:', count);
+  };
 
-### Code Splitting
+  return (
+    <div>
+      <button onClick={run}>Increment {count}</button>
+    </div>
+  );
+};
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Rules about Hooks
+1. only at the top level (not inside conditions, loops, etc)
+2. only in functional components (or custom hooks)
 
-### Analyzing the Bundle Size
+```jsx
+const Invalid = ({ type }) => {
+  if (type === 'number') {
+    const [value, setValue] = useState(0);
+  } else {
+    const [value, setValue] = useState('');
+  }
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+  return <div>Nope</div>;
+};
+```
 
-### Making a Progressive Web App
+## `useEffect`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+In any given system, making a change can have what are called "side-effects", which is simply causing a change to some state after a modification. These changes can be intentional or unintentional but in all cases should be controlled or at least accounted for. In React, we can create side effects *after* a change is made to a component by listening to changes in any variable. It's important to note the *after* keyword here, which means the effect runs once changes are flushed to the DOM and not before.
 
-### Advanced Configuration
+```jsx
+const Counter = () => {
+  const [counter, setCounter] = useState(0);
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+  useEffect(() => {
+    console.log('run update', counter);
+  });
 
-### Deployment
+  return (
+    <div className="main-panel">
+      <div className="display">Counter {counter}</div>
+      <button onClick={() => setCounter(counter + 1)}>+</button>
+    </div>
+  );
+};
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+In this case, we have created an effect that is fired any time the component re-renders. We can also specify a dependency array with the list of variables we want to listen to exclusively.
 
-### `npm run build` fails to minify
+```jsx
+const Counter = () => {
+  const [counter, setCounter] = useState(0);
+  const [other, setOther] = useState(0);
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+  useEffect(() => {
+    console.log('run update', counter);
+  }, [counter]);
+
+  return (
+    <div>
+      <div className="main-panel">
+        <div className="display">Counter {counter}</div>
+        <button onClick={() => setCounter(counter + 1)}>+</button>
+      </div>
+      <div className="main-panel">
+        <div className="display">Other {other}</div>
+        <button onClick={() => setOther(other + 1)}>+</button>
+      </div>
+    </div>
+  );
+};
+```
+
+It is very common to need to execute something after a components get mounted but never again, for example to fetch some data required by the component. We can easily do this by specifying an empty dependency array, which will effectively run the effect once after mount and never again:
+
+```jsx
+const Counter = () => {
+  const [counter, setCounter] = useState(null);
+
+  useEffect(() => {
+    // Simulate an async operation
+    setTimeout(() => {
+      setCounter(0);
+    }, 3000)
+  }, []);
+
+  // When it mounts, its not ready since counter has not been set
+  if (counter === null) {
+    return <div>Counter is not ready...</div>
+  }
+
+  return (
+    <div>
+      <div className="main-panel">
+        <div className="display">Counter {counter}</div>
+        <button onClick={() => setCounter(counter + 1)}>+</button>
+      </div>
+    </div>
+  );
+};
+```
+
+### Cleaning Up after side-effects
+
+JS is a high level language that manages garbage collection for us so we don't need to worry about allocating/deallocating memory, etc. However, it's very important that any time we set up an effect, we clean up after its no longer needed to avoid memory leaks. This is useful for example if we have set up subscriptions (like subscribing to an API), listeners to events, intervals or timeouts, etc. The clean-up function should be returned from `useEffect` as follows:
+
+```jsx
+const App = () => {
+  
+  useEffect(() => {
+    API.subscribe();
+
+    return () => {
+      API.unsubscribe();
+    }
+  }, []);
+
+  return (
+    <div>API Subscription</div>
+  );
+};
+```
+
+So when does `useEffect` run? It's important to understand the order of operations when a component renders:
+
+- render
+- run clean up functions of previous `useEffect` (note that we still have old values here because the effect was declared in the previous render)
+- run `useEffect` (here we have the new values)
+
+```jsx
+const Counter = () => {
+  const [counter, setCounter] = useState(0);
+
+  useEffect(() => {
+    console.log('Running useEffect with no dependencies');
+
+    return () => {
+      console.log('Running clean-up for useEffect with no dependencies');
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log('Running useEffect - counter is', counter);
+
+    return () => {
+      console.log('Running clean-up - counter is', counter);
+    }
+  }, [counter]);
+
+  console.log('Rendering...');
+
+  return (
+    <div>
+      <div className="main-panel">
+        <div className="display">Counter {counter}</div>
+        <button onClick={() => setCounter(counter + 1)}>+</button>
+      </div>
+    </div>
+  );
+};
+```
+
+Lets look at another example:
+
+```jsx
+const Even = ({ number }) => {
+  useEffect(() => {
+    console.log('updated Even');
+    return () => {
+      console.log('unmounted Even');
+    };
+  });
+
+  return `Even ${number}`;
+};
+
+const Odd = ({ number }) => {
+  useEffect(() => {
+    console.log('updated Odd');
+    return () => {
+      console.log('unmounted Odd');
+    };
+  });
+
+  return `Odd ${number}`;
+};
+
+const App = () => {
+  const [counter, setCounter] = useState(0);
+
+  return (
+    <div className="main-panel">
+      <div className="display">{counter % 2 ? <Odd number={counter} /> : <Even number={counter} />}</div>
+      <button onClick={() => setCounter(counter + 1)}>Inc</button>
+    </div>
+  );
+};
+```
+
+What if we forget to clean up? In many cases, we won't notice, which is why it's even more important to remember to clean up. One common example of forgetting to clean up is trying to update a component that has already been unmounted:
+
+```jsx
+const TroubleMaker = () => {
+  const [trouble, setTrouble] = useState(false);
+  
+  useEffect(() => {
+    const t = setTimeout(() => {
+      console.log('Updating TroubleMaker');
+      
+      // This will cause an update on an unmounted component so react will warn us but note that if there was no update, this would go unnoticed
+      setTrouble(true);
+    }, 5000)
+
+    // If we do clean up, there's no problem
+    // return () => clearTimeout(t);
+  }, [])
+
+  return <div>I'm about to cause trouble...{trouble}</div>
+}
+
+const App = () => {
+  const [mounted, setMounted] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => {
+      console.log('Unmounting TroubleMaker');
+      setMounted(false);
+    }, 2000)
+  }, []);
+
+  console.log('Rendering...');
+
+  return (
+    <div>
+      <div>Trouble Maker mounted? {mounted}</div>
+      {mounted && <TroubleMaker/>}
+    </div>
+  );
+};
+```
+
+## `useRef`
+
+Lets imagine we need to use a plain old local variable in our component, we could do something like:
+
+```jsx
+const Counter = () => {
+  const [counter, setCounter] = useState(0);
+
+  let myVariable = 'initial value';
+
+  return (
+    <div>
+      <div className="main-panel">
+        <div className="display">Counter {counter}</div>
+        <div>
+          Variable: {myVariable}
+        </div>
+        <button
+          onClick={() => {
+            console.log('Updating my variable');
+            myVariable = 'updated value';
+            console.log('myVariable', myVariable);
+            setCounter(counter + 1);
+          }}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+};
+```
+
+This doesn't work, because when the component re-renders, the variable gets redeclared with the initial value. We could use a new `useState` hook to store a new variable, but then any time we update this variable it would cause a re-render, which is not what we want. Instead, we can use a `ref`, which is a variable that can hold a mutable value in it's `.current` property and does not get updated on re-render:
+
+```jsx
+const Counter = () => {
+  const [counter, setCounter] = useState(0);
+  const myVariable = useRef('initial value');
+
+  return (
+    <div>
+      <div className="main-panel">
+        <div className="display">Counter {counter}</div>
+        <div>
+          Variable: {myVariable.current}
+        </div>
+        <button
+          onClick={() => {
+            console.log('Updating my variable');
+            myVariable.current = 'updated value';
+            console.log('myVariable', myVariable);
+            // Note that the only reason the component is re-rendering is because we're calling this setter which mutates the state. If we comment this out then it will not re-render
+            setCounter(counter + 1);
+          }}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+};
+```
+
+Refs can also be used to access the DOM elements by binding them as props:
+
+```jsx
+const FocusInput = () => {
+
+  const inputRef = useRef()
+
+  useEffect(() => {
+    inputRef.current.focus()
+  }, [])
+
+  return <input ref={inputRef}/>
+}
+```
+
+```jsx
+const Map = () => {
+  const myMap = useRef();
+
+  useEffect(() => {
+    new mapboxgl.Map({
+      container: myMap.current,
+      style: 'mapbox://styles/mapbox/streets-v11', // style URL
+      center: [-71.1167, 42.377], // starting position [lng, lat]
+      zoom: 14, // starting zoom
+    });
+  }, []);
+
+  return (
+    <div
+      className="main-panel"
+      ref={myMap}
+      style={{ height: 300, width: 300, padding: 0, margin: 0, overflow: 'hidden' }}
+    />
+  );
+};
+```

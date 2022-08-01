@@ -1,45 +1,19 @@
-// import './App.css';
-import React, { useState, useEffect, useRef } from 'react';
-import styled from 'styled-components';
+import mapboxgl from 'mapbox-gl';
+import { useEffect, useRef } from 'react';
+import './App.css';
 
-class CoolButton extends React.Component {
-  render() {
-    return (
-      <button id="wrapper" className={this.props.className} onClick={this.props.onClick}>
-        I'm Cool {this.props.counter}
-      </button>
-    );
-  }
-}
+const FocusInput = () => {
+  const inputRef = useRef();
 
-const StyledCoolButton = styled(CoolButton)`
-  color: red;
-`;
+  useEffect(() => {
+    inputRef.current.focus();
+  }, []);
 
-class App extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      counter: 0,
-    };
-  }
+  return <input ref={inputRef} />;
+};
 
-  render() {
-    return (
-      <div>
-        <StyledCoolButton
-          counter={this.state.counter}
-          onClick={() => {
-            this.setState({
-              counter: this.state.counter + 1,
-            });
-          }}
-        >
-          {this.state.counter}
-        </StyledCoolButton>
-      </div>
-    );
-  }
-}
+const App = () => {
+  return <FocusInput />;
+};
 
 export default App;
