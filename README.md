@@ -1,3 +1,79 @@
+# Styling
+When the web was born, websites were simply text documents and rendered in monospace font. Fast forward to today, and we can now add color, shapes, animations, gradients, blur, filters, fonts and an nearly infinite amount of style to our websites, making the web a more fun place to be.
+
+In traditional websites and web-apps, we could use inline styles and CSS to change how things looked. Further, in many cases styling is very coupled with application logic. For example, if condition X is met then a button should be red. In React world, this is no different. Because our components are in the end simply HTML tags, we can use selectors to style them as usual. One minor thing to know is that the `class` prop that you would normally use in HTML is instead `className` in React:
+
+```html
+<!-- In standard HTML you would do -->
+<button class="btn-primary">Click Me</button>
+```
+
+```jsx
+// but in React (or JSX) this becomes:
+const MyButton = () => {
+  return <button className="btn-primary">Click Me</button>
+}
+```
+
+When this react component is rendered to the DOM, it will be converted to HTML as:
+
+```html
+<button class="btn-primary">Click Me</button>
+```
+
+So if we wanted to style the button using CSS, we would simply use a stylesheet with:
+
+```css
+.btn-primary {
+  background-color: blue;
+}
+```
+
+## Inline-Styles
+Styling in React using CSS is no different than a website so we're going to skip that and cover something that is React specific, which is inline-styles. 
+
+To style a native HTML tag inline one could do:
+
+```html
+<button style="background-color: blue;">Click Me</button>
+```
+
+In React, this is achieved using the `style` prop, but instead of passing a string, we pass a JSON object where the keys are the camel-cased CSS names as follows:
+
+```jsx
+const MyButton = () => {
+  const style = {
+    // Note that this will then be converted to background-color
+    backgroundColor: 'blue'
+  }
+  
+  return <button style={style}>Click Me</button>
+}
+```
+
+Of course it does not have to be a separate variable and one can simply use an anonymous object:
+
+```jsx
+const MyButton = () => {
+  return (
+    <button style={{
+      backgroundColor: 'blue'
+    }}>
+      Click Me
+    </button>
+  )
+}
+```
+
+This has several advantages because it allows us to:
+- create re-usable styles, similar to CSS but using JS
+- change style based on application rules
+- use a single language JS
+
+However, it does come with some disadvantages:
+- no separation of concerns (style/function in the same place)
+- not everything is supported (for example animations)
+
 # State Management
 
 So far we have built pretty static components, which receive props and render something. However, apps are dynamic and the user interface needs to display change based on user inputs, data updates, integrations, etc. There are lots of different approaches to handling application state and keeping the UI in sync with it, each with its own pros and cons. There are hundreds of libraries that cover this single topic as it's probably one of the most crucial things to get right on a user interface. 
