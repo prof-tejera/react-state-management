@@ -1,4 +1,3 @@
-import mapboxgl from 'mapbox-gl';
 import { useEffect, useRef } from 'react';
 import './App.css';
 
