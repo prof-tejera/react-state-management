@@ -74,6 +74,59 @@ However, it does come with some disadvantages:
 - no separation of concerns (style/function in the same place)
 - not everything is supported (for example animations)
 
+## Styled Components
+CSS and inline styles are two ways to style our applications and are available "out of the box" when we create a new React App using Create React App. However, if we want to avoid some of the disadvantages mentioned above and get the best of both worlds, we can install an external dependency called [`styled-components`](https://www.npmjs.com/package/styled-components). Below is an example on how this works:
+
+```jsx
+// Bring in the third-party library
+import styled from 'styled-components';
+
+// Here we create a new React Component (simply a div) that is styled with the provided CSS:
+const StyledPanel = styled.div`
+  background-color: red;
+  border: 1px solid gray;
+  padding: 10px;
+  margin: 10px;
+`;
+
+const App = () => {
+
+  // As you can see here, StyledPanel can be used like any regular React component
+
+  return <div>
+    <StyledPanel>I'm Panel 1</StyledPanel>
+    <StyledPanel>I'm Panel 2</StyledPanel>
+  </div>
+};
+```
+
+### Dynamic Styling
+One of the main disadvantages of CSS in React is it's difficult to bake in application logic to style our components differently. However, `styled-components` does allow us to pass in `props` into these styled components easily:
+
+```jsx
+import styled from 'styled-components';
+
+// Notice how we return the style for the CSS attribute 
+// and can change it based on props
+const StyledPanel = styled.div`
+  background-color: ${props => {
+    if (props.type === 'primary') return 'blue';
+    else return 'gray';
+  }};
+  border: 1px solid gray;
+  padding: 10px;
+  margin: 10px;
+`;
+
+const App = () => {
+  // We can pass in props to styled components:
+  return <div>
+    <StyledPanel type="primary">I'm Panel 1</StyledPanel>
+    <StyledPanel type="default">I'm Panel 2</StyledPanel>
+  </div>
+};
+```
+
 # State Management
 
 So far we have built pretty static components, which receive props and render something. However, apps are dynamic and the user interface needs to display change based on user inputs, data updates, integrations, etc. There are lots of different approaches to handling application state and keeping the UI in sync with it, each with its own pros and cons. There are hundreds of libraries that cover this single topic as it's probably one of the most crucial things to get right on a user interface. 

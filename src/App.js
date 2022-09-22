@@ -1,18 +1,52 @@
-import { useEffect, useRef } from 'react';
 import './App.css';
 
-const FocusInput = () => {
-  const inputRef = useRef();
+const Styles = {
+  red: {
+    color: 'red',
+  },
+  bordered: {
+    border: '1px solid blue',
+  },
+};
 
-  useEffect(() => {
-    inputRef.current.focus();
-  }, []);
+const ListItem = ({ id, name, index }) => {
+  return (
+    <li id={id}>
+      <span>
+        <b>{id}</b>: {name}
+      </span>
+    </li>
+  );
+};
 
-  return <input ref={inputRef} />;
+const ListPanel = ({ title, items }) => {
+  const renderedItems = items.map((item, index) => {
+    const isOdd = index % 2 === 1;
+
+    return isOdd && <ListItem key={index} id={index} name={item.name} index={index} />;
+  });
+
+  console.log(renderedItems);
+
+  return (
+    <div>
+      <h3>{title}</h3>
+      <ol>{renderedItems}</ol>
+    </div>
+  );
 };
 
 const App = () => {
-  return <FocusInput />;
+  const loggedUser = {
+    name: 'Nico',
+  };
+
+  return (
+    <div>
+      {loggedUser && `Hello ${loggedUser.name}`}
+      {!loggedUser && 'Log In'}
+    </div>
+  );
 };
 
 export default App;
